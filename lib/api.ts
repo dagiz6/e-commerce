@@ -11,6 +11,13 @@ export interface SignupData {
   password: string;
 }
 
+export interface GoogleAuthData {
+  googleId: string;
+  name: string;
+  email: string;
+  picture: string;
+}
+
 export interface ForgotPasswordData {
   email: string;
 }
@@ -21,6 +28,7 @@ export interface AuthResponse {
     id: string;
     name: string;
     email: string;
+    picture?: string;
   };
 }
 
@@ -52,6 +60,22 @@ export const authApi = {
 
     if (!response.ok) {
       throw new Error("Signup failed");
+    }
+
+    return response.json();
+  },
+
+  googleAuth: async (data: GoogleAuthData): Promise<AuthResponse> => {
+    const response = await fetch(`${API_URL}/auth/google`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error("Google authentication failed");
     }
 
     return response.json();

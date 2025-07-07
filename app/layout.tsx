@@ -6,8 +6,8 @@ import QueryProvider from "@/components/providers/query-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Authentication App",
-  description: "Secure authentication with Next.js, Zustand, and React Query",
+  title: "Ethiopian Shoping Center",
+  description: "the best place to buy Ethiopian products online and have them delivered to your location, anything you want, we have it.",
 };
 
 export default function RootLayout({

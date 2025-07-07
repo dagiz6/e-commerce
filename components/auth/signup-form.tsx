@@ -7,7 +7,9 @@ import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, User, UserPlus } from "lucide-react";
 import { authApi, SignupData } from "@/lib/api";
 import { useAuthStore } from "@/store/auth-store";
+import { GoogleUser } from "@/lib/google-auth";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import GoogleSignInButton from "@/components/ui/google-signin-button";
 
 export default function SignupForm() {
   const [formData, setFormData] = useState<SignupData>({
@@ -23,6 +25,17 @@ export default function SignupForm() {
 
   const signupMutation = useMutation({
     mutationFn: authApi.signup,
+    onSuccess: (data) => {
+      setAuth(data.user, data.token);
+      router.push("/dashboard");
+    },
+    onError: (error) => {
+      setErrors({ submit: error.message });
+    },
+  });
+
+  const googleAuthMutation = useMutation({
+    mutationFn: authApi.googleAuth,
     onSuccess: (data) => {
       setAuth(data.user, data.token);
       router.push("/dashboard");
@@ -72,129 +85,166 @@ export default function SignupForm() {
     }
   };
 
+  const handleGoogleSuccess = (user: GoogleUser) => {
+    googleAuthMutation.mutate({
+      googleId: user.id,
+      name: user.name,
+      email: user.email,
+      picture: user.picture,
+    });
+  };
+
+  const handleGoogleError = (error: string) => {
+    setErrors({ submit: error });
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Name Field */}
-      <div>
-        <label
-          htmlFor="name"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          Full Name
-        </label>
-        <div className="relative">
-          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-            placeholder="Enter your full name"
-          />
-        </div>
-        {errors.name && (
-          <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-        )}
+    <div className="space-y-6">
+      {/* Google Sign In Button */}
+      <div className="relative">
+        <GoogleSignInButton
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+          disabled={signupMutation.isPending || googleAuthMutation.isPending}
+        />
       </div>
 
-      {/* Email Field */}
-      <div>
-        <label
-          htmlFor="email"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          Email Address
-        </label>
-        <div className="relative">
-          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-            placeholder="Enter your email"
-          />
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-300" />
         </div>
-        {errors.email && (
-          <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-        )}
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-gray-500">
+            Or create account with email
+          </span>
+        </div>
       </div>
 
-      {/* Password Field */}
-      <div>
-        <label
-          htmlFor="password"
-          className="block text-sm font-medium text-gray-700 mb-2"
-        >
-          Password
-        </label>
-        <div className="relative">
-          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <input
-            type={showPassword ? "text" : "password"}
-            id="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-            placeholder="Create a password"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+      {/* Email/Password Form */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Name Field */}
+        <div>
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium text-gray-700 mb-2"
           >
-            {showPassword ? (
-              <EyeOff className="h-5 w-5" />
-            ) : (
-              <Eye className="h-5 w-5" />
-            )}
-          </button>
+            Full Name
+          </label>
+          <div className="relative">
+            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              placeholder="Enter your full name"
+            />
+          </div>
+          {errors.name && (
+            <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+          )}
         </div>
-        {errors.password && (
-          <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-        )}
-      </div>
 
-      {/* Submit Error */}
-      {errors.submit && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-600">{errors.submit}</p>
-        </div>
-      )}
-
-      {/* Submit Button */}
-      <button
-        type="submit"
-        disabled={signupMutation.isPending}
-        className="w-full bg-gray-900 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-800 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
-      >
-        {signupMutation.isPending ? (
-          <LoadingSpinner />
-        ) : (
-          <>
-            <UserPlus className="h-5 w-5" />
-            <span>Create Account</span>
-          </>
-        )}
-      </button>
-
-      {/* Sign In Link */}
-      <div className="text-center">
-        <p className="text-sm text-gray-600">
-          Already have an account?{" "}
-          <Link
-            href="/auth/login"
-            className="text-blue-600 hover:text-blue-500 font-medium transition-colors"
+        {/* Email Field */}
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Sign in
-          </Link>
-        </p>
-      </div>
-    </form>
+            Email Address
+          </label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              placeholder="Enter your email"
+            />
+          </div>
+          {errors.email && (
+            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+          )}
+        </div>
+
+        {/* Password Field */}
+        <div>
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Password
+          </label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              placeholder="Create a password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+          {errors.password && (
+            <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+          )}
+        </div>
+
+        {/* Submit Error */}
+        {errors.submit && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-600">{errors.submit}</p>
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={signupMutation.isPending || googleAuthMutation.isPending}
+          className="w-full bg-gray-900 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-800 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
+        >
+          {signupMutation.isPending || googleAuthMutation.isPending ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              <UserPlus className="h-5 w-5" />
+              <span>Create Account</span>
+            </>
+          )}
+        </button>
+
+        {/* Sign In Link */}
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            Already have an account?{" "}
+            <Link
+              href="/auth/login"
+              className="text-blue-600 hover:text-blue-500 font-medium transition-colors"
+            >
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </form>
+    </div>
   );
 }
