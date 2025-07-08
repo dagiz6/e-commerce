@@ -29,13 +29,12 @@ export interface AuthResponse {
     name: string;
     email: string;
     picture?: string;
-    role: "vendor" | "admin" | "client";
   };
 }
 
 export const authApi = {
   login: async (data: LoginData): Promise<AuthResponse> => {
-    const response = await fetch(`${API_URL}/auth/login`, {
+    const response = await fetch(`${API_URL}/sign-in`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -51,7 +50,7 @@ export const authApi = {
   },
 
   signup: async (data: SignupData): Promise<AuthResponse> => {
-    const response = await fetch(`${API_URL}/auth/signup`, {
+    const response = await fetch(`${API_URL}/sign-up`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
