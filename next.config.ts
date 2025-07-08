@@ -4,6 +4,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   
+  optimizeFonts: false,
   images: {
     unoptimized: true,
     domains: ["images.pexels.com", "lh3.googleusercontent.com"],
