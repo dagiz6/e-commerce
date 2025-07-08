@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
-import { authApi, LoginData } from '@/lib/api';
-import { useAuthStore } from '@/store/auth-store';
-import { GoogleUser } from '@/lib/google-auth';
-import LoadingSpinner from '@/components/ui/loading-spinner';
-import GoogleSignInButton from '@/components/ui/google-signin-button';
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Eye, EyeOff, Mail, Lock, LogIn } from "lucide-react";
+import { authApi, LoginData } from "@/lib/api";
+import { useAuthStore } from "@/store/auth-store";
+import { GoogleUser } from "@/lib/google-auth";
+import LoadingSpinner from "@/components/ui/loading-spinner";
+import GoogleSignInButton from "@/components/ui/google-signin-button";
 
 export default function LoginForm() {
   const [formData, setFormData] = useState<LoginData>({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -26,7 +26,20 @@ export default function LoginForm() {
     mutationFn: authApi.login,
     onSuccess: (data) => {
       setAuth(data.user, data.token);
-      router.push('/dashboard');
+      // Route based on user role
+      switch (data.user.role) {
+        case "vendor":
+          router.push("/vendor");
+          break;
+        case "admin":
+          router.push("/admin");
+          break;
+        case "client":
+          router.push("/dashboard");
+          break;
+        default:
+          router.push("/dashboard");
+      }
     },
     onError: (error) => {
       setErrors({ submit: error.message });
@@ -37,7 +50,20 @@ export default function LoginForm() {
     mutationFn: authApi.googleAuth,
     onSuccess: (data) => {
       setAuth(data.user, data.token);
-      router.push('/dashboard');
+      // Route based on user role
+      switch (data.user.role) {
+        case "vendor":
+          router.push("/vendor");
+          break;
+        case "admin":
+          router.push("/admin");
+          break;
+        case "client":
+          router.push("/dashboard");
+          break;
+        default:
+          router.push("/dashboard");
+      }
     },
     onError: (error) => {
       setErrors({ submit: error.message });
@@ -48,15 +74,15 @@ export default function LoginForm() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = "Email is invalid";
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = "Password must be at least 6 characters";
     }
 
     setErrors(newErrors);
@@ -72,9 +98,9 @@ export default function LoginForm() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
@@ -108,7 +134,9 @@ export default function LoginForm() {
           <div className="w-full border-t border-gray-300" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+          <span className="px-2 bg-white text-gray-500">
+            Or continue with email
+          </span>
         </div>
       </div>
 
@@ -116,7 +144,10 @@ export default function LoginForm() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Email Field */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Email Address
           </label>
           <div className="relative">
@@ -131,18 +162,23 @@ export default function LoginForm() {
               placeholder="Enter your email"
             />
           </div>
-          {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+          {errors.email && (
+            <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+          )}
         </div>
 
         {/* Password Field */}
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Password
           </label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               id="password"
               name="password"
               value={formData.password}
@@ -155,10 +191,16 @@ export default function LoginForm() {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
             </button>
           </div>
-          {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+          {errors.password && (
+            <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+          )}
         </div>
 
         {/* Forgot Password Link */}
@@ -197,7 +239,7 @@ export default function LoginForm() {
         {/* Sign Up Link */}
         <div className="text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
+            Don't have an account?{" "}
             <Link
               href="/auth/signup"
               className="text-blue-600 hover:text-blue-500 font-medium transition-colors"

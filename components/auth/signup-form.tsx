@@ -27,7 +27,20 @@ export default function SignupForm() {
     mutationFn: authApi.signup,
     onSuccess: (data) => {
       setAuth(data.user, data.token);
-      router.push("/dashboard");
+      // Route based on user role
+      switch (data.user.role) {
+        case "vendor":
+          router.push("/vendor");
+          break;
+        case "admin":
+          router.push("/admin");
+          break;
+        case "client":
+          router.push("/dashboard");
+          break;
+        default:
+          router.push("/dashboard");
+      }
     },
     onError: (error) => {
       setErrors({ submit: error.message });
@@ -38,7 +51,20 @@ export default function SignupForm() {
     mutationFn: authApi.googleAuth,
     onSuccess: (data) => {
       setAuth(data.user, data.token);
-      router.push("/dashboard");
+      // Route based on user role
+      switch (data.user.role) {
+        case "vendor":
+          router.push("/vendor");
+          break;
+        case "admin":
+          router.push("/admin");
+          break;
+        case "client":
+          router.push("/dashboard");
+          break;
+        default:
+          router.push("/dashboard");
+      }
     },
     onError: (error) => {
       setErrors({ submit: error.message });

@@ -29,6 +29,7 @@ export interface AuthResponse {
     name: string;
     email: string;
     picture?: string;
+    role: "vendor" | "admin" | "client";
   };
 }
 
@@ -94,6 +95,22 @@ export const authApi = {
 
     if (!response.ok) {
       throw new Error("Password reset failed");
+    }
+
+    return response.json();
+  },
+
+  verifyToken: async (token: string): Promise<AuthResponse> => {
+    const response = await fetch(`${API_URL}/auth/verify`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Token verification failed");
     }
 
     return response.json();
